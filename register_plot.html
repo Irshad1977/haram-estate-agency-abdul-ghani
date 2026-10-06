@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Plot - Housing System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-size: 0.85rem; background-color: #f4f6f9; }
+        .card-header { padding: 0.5rem 1rem; }
+        .form-control, .form-select, .btn { font-size: 0.85rem; padding: 0.3rem 0.6rem; border-radius: 3px; }
+        label { margin-bottom: 0.2rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="container py-3" style="max-width: 800px;">
+        <div class="card shadow-sm border-0">
+            
+            <!-- --- START: Card Header --- -->
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                <span class="fw-bold">Register New Plot</span>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-sm py-0">Back to Dashboard</a>
+            </div>
+            <!-- --- END: Card Header --- -->
+
+            <div class="card-body p-3">
+                
+                <!-- --- START: Flash Messages --- -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show py-2 mb-2" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <!-- --- END: Flash Messages --- -->
+
+
+                <!-- ======================================================= -->
+                <!-- REGISTRATION FORM SECTION -->
+                <!-- ======================================================= -->
+                <!-- --- START: Registration Form --- -->
+                <form method="POST" action="{{ url_for('register_plot') }}">
+                    <div class="row g-2">
+                        
+                        <!-- Auto-filled Active Scheme & Category Fields -->
+                        <div class="col-md-6">
+                            <label class="form-label">Active Scheme</label>
+                            <input type="text" class="form-control bg-light" value="{{ active_scheme }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <input type="text" class="form-control bg-light text-uppercase" value="{{ active_category }}" readonly>
+                        </div>
+
+                        <!-- Plot & Owner Details Fields -->
+                        <div class="col-md-6">
+                            <label for="plot_number" class="form-label">Plot Number *</label>
+                            <input type="text" class="form-control" id="plot_number" name="plot_number" placeholder="e.g. 101" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="owner_name" class="form-label">Owner Name *</label>
+                            <input type="text" class="form-control" id="owner_name" name="owner_name" placeholder="Full Name" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="nic_no" class="form-label">NIC / CNIC Number *</label>
+                            <input type="text" class="form-control" id="nic_no" name="nic_no" placeholder="13 Digit CNIC" maxlength="15" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mobile_no" class="form-label">Mobile Number *</label>
+                            <input type="text" class="form-control" id="mobile_no" name="mobile_no" placeholder="03001234567" maxlength="12" required>
+                        </div>
+
+                        <!-- Financial Calculation Fields -->
+                        <div class="col-md-6">
+                            <label for="plot_size" class="form-label">Plot Size (Sq. Ft) *</label>
+                            <input type="number" step="any" class="form-control" id="plot_size" name="plot_size" placeholder="1200" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="rate_per_sqft" class="form-label">Rate Per Sq. Ft *</label>
+                            <input type="number" step="any" class="form-control" id="rate_per_sqft" name="rate_per_sqft" placeholder="500" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="advance" class="form-label">Advance Paid *</label>
+                            <input type="number" step="any" class="form-control" id="advance" name="advance" placeholder="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="payment_type" class="form-label">Payment Type *</label>
+                            <select class="form-select" id="payment_type" name="payment_type" required>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Pay Order">Pay Order</option>
+                                <option value="Online Banking">Online Banking</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="payment_date" class="form-label">Payment Date *</label>
+                            <input type="date" class="form-control" id="payment_date" name="payment_date" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="remarks" class="form-label">Remarks / Notes</label>
+                            <input type="text" class="form-control" id="remarks" name="remarks" placeholder="Optional comments...">
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="col-12 mt-3 text-end">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-success px-4">Save Plot</button>
+                        </div>
+
+                    </div>
+                </form>
+                <!-- --- END: Registration Form --- -->
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

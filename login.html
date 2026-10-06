@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Housing Scheme Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Lock scrollbars */
+            font-size: 0.85rem;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
+        }
+
+        .login-wrapper {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+            padding: 20px 20px 15px 20px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            text-align: center;
+        }
+
+        .login-header h5 {
+            font-size: 1.15rem;
+            letter-spacing: 0.5px;
+        }
+
+        .login-body {
+            padding: 22px 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 3px;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control, .form-select {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            color: #0f172a !important;
+            background-color: #f8fafc !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #ffffff !important;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        select.form-select option {
+            color: #0f172a !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-erp {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border: none;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 8px 12px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-erp:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .alert {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="login-header">
+                <h5 class="fw-bold mb-1">Housing Scheme ERP Portal</h5>
+                <small class="text-light opacity-75">Secure Management System Access</small>
+            </div>
+
+            <!-- Body -->
+            <div class="login-body">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    <!-- Select Housing Scheme Dropdown with Placeholder -->
+                    <div class="mb-3">
+                        <label for="scheme_name" class="form-label">Select Housing Scheme *</label>
+                        <select class="form-select fw-semibold" id="scheme_name" name="scheme_name" required>
+                            <option value="" disabled selected>-- Select Housing Scheme --</option>
+                            {% for scheme in schemes_list %}
+                                <option value="{{ scheme }}">{{ scheme }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Select Category Dropdown with Placeholder -->
+                    <div class="mb-3">
+                        <label for="plot_category" class="form-label">Select Category *</label>
+                        <select class="form-select fw-semibold" id="plot_category" name="plot_category" required>
+                            <option value="" disabled selected>-- Select Plot Category --</option>
+                            <option value="RESIDENTIAL">RESIDENTIAL</option>
+                            <option value="COMMERCIAL">COMMERCIAL</option>
+                        </select>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username *</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required autocomplete="off">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password *</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-erp w-100 text-uppercase">Log In to Portal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing Scheme Management System - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom Banking Density CSS (13px Standard Font Size) -->
+    <style>
+        body {
+            font-size: 0.85rem; /* Standard ERP Font Size (~13.6px) */
+            background-color: #f4f6f9;
+        }
+        .navbar { padding-top: 0.4rem; padding-bottom: 0.4rem; }
+        .card { border-radius: 4px; }
+        .card-body { padding: 0.75rem 1rem; }
+        .form-control, .form-select, .btn {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+        }
+        select.form-select, select.form-select option {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+        }
+        .summary-box { padding: 0.6rem 1rem; }
+        .summary-box h6 { font-size: 0.75rem; margin-bottom: 2px; letter-spacing: 0.5px; }
+        .summary-box h4 { font-size: 1.2rem; font-weight: 700; }
+        .table-sm th, .table-sm td { padding: 0.4rem 0.6rem; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 1: TOP NAVIGATION BAR -->
+    <!-- =================================================================== -->
+    <!-- --- START: Navigation Bar --- -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid px-3">
+            <a class="navbar-brand fw-bold fs-6" href="{{ url_for('dashboard') }}">
+                Housing Scheme Management System
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-light">User: <strong>{{ session.get('user', '').upper() }}</strong> <span class="badge bg-secondary ms-1">{{ session.get('role', '').upper() }}</span></span>
+                {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('manage_users') }}" class="btn btn-warning btn-sm py-0 fw-semibold">Manage Users</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm py-0">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <!-- --- END: Navigation Bar --- -->
+
+
+    <!-- =================================================================== -->
+    <!-- MAIN CONTAINER -->
+    <!-- =================================================================== -->
+    <div class="container-fluid px-3 py-3">
+
+        <!-- --- START: Flash Messages Alert --- -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show py-2 mb-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <!-- --- END: Flash Messages Alert --- -->
+
+
+        <!-- =============================================================== -->
+        <!-- SECTION 2: ACTIVE CONTEXT CONTROL BAR -->
+        <!-- =============================================================== -->
+        <!-- --- START: Active Context Bar --- -->
+        <!-- Maqsad: Active Scheme aur Category ko session mein switch karna -->
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body bg-white rounded">
+                <form method="POST" action="{{ url_for('dashboard') }}" class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label for="scheme_name" class="form-label fw-bold mb-1">Active Housing Scheme</label>
+                        <select class="form-select border-primary fw-semibold" id="scheme_name" name="scheme_name" onchange="this.form.submit()">
+                            {% for sch in schemes_list %}
+                                <option value="{{ sch }}" {% if active_scheme == sch %}selected{% endif %}>{{ sch }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="plot_category" class="form-label fw-bold mb-1">Active Plot Category</label>
+                        <select class="form-select border-primary fw-semibold" id="plot_category" name="plot_category" onchange="this.form.submit()">
+                            <option value="RESIDENTIAL" {% if active_category == 'RESIDENTIAL' %}selected{% endif %}>RESIDENTIAL</option>
+                            <option value="COMMERCIAL" {% if active_category == 'COMMERCIAL' %}selected{% endif %}>COMMERCIAL</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold">Apply Context</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- --- END: Active Context Bar --- -->
+
+
+        <!-- =============================================================== -->
+        <!-- SECTION 3: FINANCIAL SUMMARY CARDS -->
+        <!-- =============================================================== -->
+        <!-- --- START: Summary Cards --- -->
+        <!-- Maqsad: Active Scheme ke Total Sales, Received Amount, aur Outstanding Balance dikhana -->
+        <div class="row g-2 mb-3">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white shadow-sm border-0 summary-box">
+                    <h6 class="text-uppercase text-light">Total Scheme Value</h6>
+                    <h4 class="mb-0">Rs. {{ total_cost | accounting }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white shadow-sm border-0 summary-box">
+                    <h6 class="text-uppercase text-light">Total Collected Amount</h6>
+                    <h4 class="mb-0">Rs. {{ total_collected | accounting }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-danger text-white shadow-sm border-0 summary-box">
+                    <h6 class="text-uppercase text-light">Total Outstanding Balance</h6>
+                    <h4 class="mb-0">Rs. {{ total_remaining | accounting }}</h4>
+                </div>
+            </div>
+        </div>
+        <!-- --- END: Summary Cards --- -->
+
+
+        <!-- =============================================================== -->
+        <!-- SECTION 4: ACTIONS & QUICK SEARCH BAR -->
+        <!-- =============================================================== -->
+        <!-- --- START: Action Bar & Search --- -->
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-6 d-flex gap-2">
+                        <a href="{{ url_for('register_plot') }}" class="btn btn-success fw-semibold">+ Register New Plot</a>
+                        <a href="{{ url_for('add_installment') }}" class="btn btn-outline-primary fw-semibold">+ Receive Installment</a>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="GET" action="{{ url_for('dashboard') }}" class="d-flex gap-2">
+                            <input type="text" name="search" class="form-control" placeholder="Search Plot #, Owner Name, CNIC..." value="{{ search_query }}">
+                            <button type="submit" class="btn btn-dark px-3">Search</button>
+                            {% if search_query %}
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Clear</a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- --- END: Action Bar & Search --- -->
+
+
+        <!-- =============================================================== -->
+        <!-- SECTION 5: REGISTERED PLOTS DATA GRID TABLE -->
+        <!-- =============================================================== -->
+        <!-- --- START: Plots Directory Table --- -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-secondary text-white py-2 d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Registered Plots Records ({{ active_category }})</span>
+                <span class="badge bg-light text-dark">{{ plots | length }} Records</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover mb-0 align-middle">
+                        <thead class="table-light border-bottom">
+                            <tr>
+                                <th>#</th>
+                                <th>Plot No</th>
+                                <th>Owner Name</th>
+                                <th>Mobile No</th>
+                                <th class="text-end">Total Cost</th>
+                                <th class="text-end">Total Paid</th>
+                                <th class="text-end">Remaining Balance</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if plots %}
+                                {% for plot in plots %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="fw-bold text-primary">{{ plot.plot_number }}</td>
+                                    <td>{{ plot.owner_name }}</td>
+                                    <td>{{ plot.mobile_no }}</td>
+                                    <td class="text-end fw-semibold">Rs. {{ plot.total_cost | accounting }}</td>
+                                    <td class="text-end fw-semibold text-success">Rs. {{ plot.total_paid | accounting }}</td>
+                                    <td class="text-end fw-semibold text-danger">Rs. {{ plot.remaining_balance | accounting }}</td>
+                                    <td class="text-center py-1">
+                                        <a href="{{ url_for('ledger', plot_id=plot.id) }}" class="btn btn-sm btn-info text-white py-0 px-2 me-1">Ledger</a>
+                                        <a href="{{ url_for('add_installment', plot_number=plot.plot_number) }}" class="btn btn-sm btn-outline-success py-0 px-2">+ Payment</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-3">No plot records found for the active filter.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- --- END: Plots Directory Table --- -->
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Expenses - Housing Scheme</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-body: #f4f6f9; --sidebar-width: 260px; --card-radius: 12px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: #1e293b; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: #0f172a; color: #fff; padding: 20px 15px; z-index: 1000; }
+        .sidebar .brand-title { font-size: 1.1rem; font-weight: 700; color: #38bdf8; }
+        .sidebar .nav-link { color: #94a3b8; padding: 12px 14px; border-radius: 8px; margin-bottom: 6px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.08); }
+        .main-wrapper { margin-left: var(--sidebar-width); padding: 25px; }
+        @media (max-width: 991px) { .sidebar { position: relative; width: 100%; height: auto; } .main-wrapper { margin-left: 0; padding: 15px; } }
+        .custom-card { background: #fff; border-radius: var(--card-radius); border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .form-label { font-size: 0.8rem; font-weight: 600; color: #475569; text-transform: uppercase; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #cbd5e1; padding: 10px 14px; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="d-flex align-items-center gap-2 mb-4 px-2">
+        <i class="fa-solid fa-building-user text-info fs-4"></i>
+        <span class="brand-title">Bijar Khan Scheme</span>
+    </div>
+    
+    <nav class="nav flex-column">
+        <a href="/dashboard" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Dashboard Overview</a>
+        <a href="/add-entry" class="nav-link"><i class="fa-solid fa-square-plus text-success"></i> Add New Entry</a>
+        <a href="/add-installment" class="nav-link"><i class="fa-solid fa-hand-holding-dollar text-primary"></i> Receive Installment</a>
+        <a href="/expenses" class="nav-link active"><i class="fa-solid fa-wallet text-danger"></i> Project Expenses</a>
+        <a href="/reports" class="nav-link"><i class="fa-solid fa-file-invoice-dollar text-warning"></i> Monthly Reports</a>
+    </nav>
+
+    <div class="position-absolute bottom-0 start-0 p-3 w-100">
+        <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25">
+            <small class="text-secondary d-block">Signed in as:</small>
+            <strong class="text-white text-capitalize">{{ session.get('user', 'User') }}</strong>
+            <a href="/logout" class="btn btn-sm btn-outline-danger w-100 mt-2"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+</aside>
+
+<div class="main-wrapper">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold m-0 text-slate-800">Project Expense Management</h4>
+            <span class="text-muted small">Record Land Purchase, Brokerage Commission, Construction, & Office Bills</span>
+        </div>
+        <a href="/dashboard" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard</a>
+    </div>
+
+    <!-- Expense Add Form -->
+    <div class="custom-card p-4 mb-4">
+        <h6 class="fw-bold mb-3"><i class="fa-solid fa-plus-circle text-danger me-1"></i> Add New Expense Record</h6>
+        <form action="/expenses" method="POST" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select" required>
+                    <option value="Land Purchase">Land Purchase Cost</option>
+                    <option value="Broker Commission">Broker Commission / Dealer Fee</option>
+                    <option value="Construction">Construction & Development</option>
+                    <option value="Office & Utilities">Office Staff, Rent & Utilities</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Title / Paid To</label>
+                <input type="text" class="form-control" name="title" placeholder="e.g. Land Owner Payment / Dealer Name" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Amount (Rs.)</label>
+                <input type="number" step="0.1" class="form-control" name="amount" placeholder="e.g. 500000" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Expense Date</label>
+                <input type="date" class="form-control" name="expense_date" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Remarks</label>
+                <input type="text" class="form-control" name="remarks" placeholder="Optional details">
+            </div>
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-danger fw-semibold px-4"><i class="fa-solid fa-save me-1"></i> Save Expense</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="custom-card">
+        <div class="card-header fw-bold"><i class="fa-solid fa-list me-1 text-secondary"></i> Expenses Log</div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Title / Details</th>
+                        <th>Amount (Rs.)</th>
+                        <th>Remarks</th>
+                        {% if session.get('user') == 'admin' %}
+                        <th class="text-end">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if expenses %}
+                        {% for exp in expenses %}
+                        <tr>
+                            <td>#{{ loop.index }}</td>
+                            <td>{{ exp.expense_date|custom_date }}</td>
+                            <td><span class="badge bg-secondary">{{ exp.category }}</span></td>
+                            <td class="fw-semibold">{{ exp.title }}</td>
+                            <td class="fw-bold text-danger">Rs. {{ exp.amount|accounting }}</td>
+                            <td>{{ exp.remarks }}</td>
+                            {% if session.get('user') == 'admin' %}
+                            <td class="text-end">
+                                <a href="/delete-expense/{{ exp.id }}" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Expense record delete karein?')">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Abhi tak koi expense entry add nahi hui. Upar form se add karein.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

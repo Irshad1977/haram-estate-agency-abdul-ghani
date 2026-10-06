@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Admin ERP Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-size: 0.85rem;
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .card { border-radius: 4px; }
+        .form-control, .form-select, .btn {
+            font-size: 0.85rem;
+            padding: 0.35rem 0.6rem;
+            border-radius: 3px;
+        }
+        .table-sm th, .table-sm td {
+            padding: 0.45rem 0.6rem;
+            vertical-align: middle;
+        }
+        .pwd-text {
+            font-family: monospace;
+            letter-spacing: 1px;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Bar -->
+    <nav class="navbar navbar-dark bg-dark shadow-sm py-1">
+        <div class="container-fluid px-3">
+            <span class="navbar-brand fw-bold fs-6">User Management & System Access Control</span>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-sm py-0 fw-semibold">&larr; Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-3 py-3">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show py-2 mb-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-3">
+            <!-- Left Side: Create New User Form -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white py-2">
+                        <span class="fw-bold">+ Register New System User</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <form method="POST" action="{{ url_for('manage_users') }}">
+                            <div class="mb-2">
+                                <label for="username" class="form-label fw-semibold mb-1">Username *</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="e.g. johndoe" required autocomplete="off">
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="password" class="form-label fw-semibold mb-1">Password *</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter secure password" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="role" class="form-label fw-semibold mb-1">Access Role *</label>
+                                <select class="form-select fw-semibold" id="role" name="role" required>
+                                    <option value="officeboy">OFFICEBOY (Standard Staff)</option>
+                                    <option value="admin">ADMIN (Full Control)</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-1">Save User Account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Registered Users List Table -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-secondary text-white py-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">System Users Directory</span>
+                        <span class="badge bg-light text-dark">{{ users_list | length }} Users Registered</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped table-hover mb-0 align-middle">
+                                <thead class="table-light border-bottom">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Username</th>
+                                        <th>Password</th>
+                                        <th>Role</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if users_list %}
+                                        {% for u in users_list %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td class="fw-bold text-primary">{{ u.username }}</td>
+                                            <td>
+                                                <span class="pwd-text" id="pwd-{{ u.id }}" data-real="{{ u.password }}" data-visible="false">••••••••</span>
+                                                <button type="button" class="btn btn-sm btn-link py-0 px-1 text-decoration-none" onclick="togglePassword('{{ u.id }}')">
+                                                    👁️
+                                                </button>
+                                            </td>
+                                            <td>
+                                                {% if u.role == 'admin' %}
+                                                    <span class="badge bg-danger">ADMIN</span>
+                                                {% else %}
+                                                    <span class="badge bg-info text-dark">OFFICEBOY</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center py-1">
+                                                <!-- Change Password Modal Button -->
+                                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ u.id }}">
+                                                    Change Password
+                                                </button>
+
+                                                <!-- Delete User -->
+                                                {% if u.username != 'admin' and u.username != session.get('user') %}
+                                                    <a href="{{ url_for('delete_user', user_id=u.id) }}" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('Are you sure you want to delete user {{ u.username }}?')">Delete</a>
+                                                {% else %}
+                                                    <span class="text-muted small">System Locked</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+
+                                        <!-- Change Password Modal -->
+                                        <div class="modal fade" id="editModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-primary text-white py-2">
+                                                        <h6 class="modal-title fw-bold">Update Password for {{ u.username }}</h6>
+                                                        <button type="button" class="btn-close btn-close-white py-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="POST" action="{{ url_for('change_password', user_id=u.id) }}">
+                                                        <div class="modal-body p-3">
+                                                            <label class="form-label fw-semibold">New Password</label>
+                                                            <input type="text" class="form-control" name="new_password" placeholder="Enter new password" required>
+                                                        </div>
+                                                        <div class="modal-footer py-1 bg-light">
+                                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-success btn-sm">Update</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3">No system users found.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword(id) {
+            const elem = document.getElementById('pwd-' + id);
+            const realPwd = elem.getAttribute('data-real');
+            const isVisible = elem.getAttribute('data-visible') === 'true';
+
+            if (!isVisible) {
+                elem.innerText = realPwd ? realPwd : '(No Password Set)';
+                elem.setAttribute('data-visible', 'true');
+            } else {
+                elem.innerText = '••••••••';
+                elem.setAttribute('data-visible', 'false');
+            }
+        }
+    </script>
+</body>
+</html>
